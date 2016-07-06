@@ -1,10 +1,12 @@
 package com.example.victor.todo;
 
 import android.content.ClipData;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
@@ -24,13 +27,14 @@ import com.firebase.client.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Firebase mRef,  mTry;
+    private Firebase mRef,  mEmailRef;
 
     //Variables to for userId and the items url
     private String mUserId;
     private String itemsUrl;
     private String myListUrl;
     private String myTryUrl;
+    private TextView emailUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         //Here you create a Firebase reference pointing
         //to you app’s url, and then call getAuth() to check if the user is authenticated.
         mRef = new Firebase(Constants.FIREBASE_URL);
+        mEmailRef = new Firebase(Constants.EMAIL_URL);
+
         //mTry = new Firebase(Constants.TRY_URL);
         if (mRef.getAuth() == null) {
             loadLoginView();
@@ -57,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         itemsUrl = Constants.FIREBASE_URL + "/users/" + mUserId + "/items";
-        myListUrl = Constants.FIREBASE_URL + "/myList";
         //myTryUrl = Constants.TRY_URL;
 
         // Set up ListView
@@ -65,7 +70,13 @@ public class MainActivity extends AppCompatActivity {
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1);
         listView.setAdapter(adapter);
 
+
+
+
+
+
         // Add items via the Button and EditText at the bottom of the view.
+
         final EditText text = (EditText) findViewById(R.id.todoText);
         final Button button = (Button) findViewById(R.id.addButton);
         button.setOnClickListener(new View.OnClickListener() {
@@ -87,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                         adapter.add((String) dataSnapshot.child("title").getValue());
+
                     }
 
                     @Override
@@ -153,12 +165,42 @@ public class MainActivity extends AppCompatActivity {
             mRef.unauth();
             loadLoginView();
         }
-        else if (id == R.id.action_cards) {
-
+        else if (id == R.id.action_cards) { //Start dialog box here
             //Let this take you to your card view activity
             //mRef.unauth();
-            mRef.getAuth();
-            cardsView();
+//            mRef.getAuth();
+//            cardsView();
+            final EditText taskEditText = new EditText(this);
+            final EditText titleEditTitle = (EditText) findViewById(R.id.editTitle);
+            AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("Add new event")
+                    //.setMessage("What do you want to do next?")
+                    .setView(taskEditText)
+                    .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            // adapt MainActivity to store data in the database
+                            //String task = String.valueOf(taskEditText.getText()); //Gets the string from the edit text
+                            //Log.d(TAG, "Task to add: " + task); //Logs that item to test
+
+
+                            //updateUI();//This will update the UI immmediately data is changed: Do it her and also in the on create method
+                            new Firebase(itemsUrl)
+                                    .push()
+                                    .child("title")
+                                    .setValue(taskEditText.getText().toString());
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .create();
+            dialog.show();
+            return true;
+
+
+
+
+
         }
 
         return super.onOptionsItemSelected(item);

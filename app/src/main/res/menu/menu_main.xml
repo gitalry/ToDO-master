@@ -11,7 +11,7 @@
     <item
         android:id="@+id/action_cards"
         android:orderInCategory="100"
-        android:title="@string/user_emails"
+        android:title="@string/add_event"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_logout"
